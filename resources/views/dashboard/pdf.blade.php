@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rekap PDF</title>
+    <title>Rekap Nasabah Diterima</title>
     <style>
         /* Add your styling for the PDF layout here */
         body {
@@ -32,9 +32,9 @@
 </head>
 <body>
 
-    <h1>Rekap PDF</h1>
+    <h1>Rekap Nasabah Diterima</h1>
 
-    <p>Tanggal: {{ $type === 'month' ? 'Bulan ' . date('F Y', strtotime($value)) : 'Tahun ' . $value }}</p>
+    <p><b>{{ $type === 'month' ? 'Bulan ' . date('F Y', strtotime($value)) : 'Tahun ' . $value }}</b></p>
     <p>Jumlah Data: {{ count($penilaians) }}</p>
 
     <table>
@@ -56,9 +56,9 @@
                     <td>{{ $key + 1 }}</td>
                     <td>{{ $data->nama_alternatif }}</td>
                     <td>{{ $data->alamat }}</td>
-                    <td>{{ $data->penghasilan }}</td>
+                    <td>Rp. {{ number_format($data->penghasilan, 0, ',', '.') }}</td>
                     <td>{{ $data->tanggungan }}</td>
-                    <td>{{ $data->jaminan }}</td>
+                    <td>Rp. {{ number_format($data->jaminan, 0, ',', '.') }}</td>
                     <td>{{ $data->created_at }}</td>
                     <td>{{ $data->nama_variabel }}</td>
                 </tr>

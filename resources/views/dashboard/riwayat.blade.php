@@ -97,7 +97,7 @@
                             <form action="{{ route('printByYear') }}" method="post" style="display: flex; align-items: center; ">
                                 @csrf
                                 <input type="text" name="year" class="form-control" style="margin-right: 10px;" placeholder="2024">
-                                <button type="button" class="btn btn-primary" style="display: flex; align-items: left;"><i class="material-icons">picture_as_pdf</i>Cetak</button> 
+                                <button type="submit" class="btn btn-primary" style="display: flex; align-items: left;"><i class="material-icons">picture_as_pdf</i>Cetak</button> 
                             </form>
                         </div>
                     </div>

@@ -44,67 +44,98 @@ class RiwayatController extends Controller
         ]);
     }
 
+    // public function printByMonth(Request $request)
+    // {
+    //     $month = $request->input('month');
+
+    //     $penilaians = $this->getPenilaiansByDate('month', $month, $request);
+
+    //     $type = $request->has('month') ? 'month' : 'year';
+    //     $value = $request->input('month') ?? $request->input('year');
+    //     // dd($penilaians);
+    //     return view('dashboard.pdf', [
+    //         'penilaians' => $penilaians,
+    //         'type' => $type,
+    //         'value' => $value,
+    //     ]);
+    // }
+
     public function printByMonth(Request $request)
 {
     $month = $request->input('month');
-
     $penilaians = $this->getPenilaiansByDate('month', $month, $request);
-    
-    $type = $request->has('month') ? 'month' : 'year';
-    $value = $request->input('month') ?? $request->input('year');
-    // dd($penilaians);
-    return view('dashboard.pdf', [
-        'penilaians' => $penilaians,
-        'type' => $type,
-        'value' => $value,
-    ]);
-}
-
-public function printByYear(Request $request)
-{
-    $year = $request->input('year');
-
-    $penilaians = $this->getPenilaiansByDate('year', $year, $request);
 
     $type = $request->has('month') ? 'month' : 'year';
     $value = $request->input('month') ?? $request->input('year');
-    // dd($penilaians);
-    return view('dashboard.pdf', [
+
+    // Load your HTML view into Dompdf
+    $html = view('dashboard.pdf', [
         'penilaians' => $penilaians,
         'type' => $type,
         'value' => $value,
-    ]);
+    ])->render();
+
+    // Generate the PDF
+    $pdf = PDF::loadHtml($html);
+
+    // Set paper size and orientation (optional)
+    $pdf->setPaper('A4', 'portrait');
+
+    // Output the PDF (inline download)
+    return $pdf->stream("document.pdf");
+
+    // Alternatively, you can save the PDF to a file
+    // return $pdf->save("path/to/your/file.pdf");
+
+    // Or directly send the PDF as a download response
+    // return $pdf->download("document.pdf");
 }
 
-private function getPenilaiansByDate($type, $value, $request)
-{
-    $penilaians = DB::table('penilaians')
-        ->leftJoin('alternatifs as tabel_alternatif', 'penilaians.id_alternatif', '=', 'tabel_alternatif.id')
-        ->leftJoin('jenis_variabels as tabel_variabel', 'penilaians.id_jenisVariabel', '=', 'tabel_variabel.id')
-        ->select("penilaians.*", 'tabel_alternatif.nama as nama_alternatif', 'tabel_alternatif.alamat as alamat', 'tabel_variabel.nama as nama_variabel');
-        // dd($penilaians->get());
+    public function printByYear(Request $request)
+    {
+        $year = $request->input('year');
 
-    // Apply filter based on the selected date (month or year)
-    if ($type === 'month') {
-        $penilaians->whereMonth('penilaians.created_at', date('m', strtotime($value))); // Extract month from the date
-        $penilaians->whereYear('penilaians.created_at', date('Y', strtotime($value))); // Extract year from the date
-    } elseif ($type === 'year') {
-        $penilaians->whereYear('penilaians.created_at', $value);
+        $penilaians = $this->getPenilaiansByDate('year', $year, $request);
+
+        $type = $request->has('month') ? 'month' : 'year';
+        $value = $request->input('month') ?? $request->input('year');
+        // dd($penilaians);
+        return view('dashboard.pdf', [
+            'penilaians' => $penilaians,
+            'type' => $type,
+            'value' => $value,
+        ]);
     }
 
-    $penilaians = $penilaians->get();
+    private function getPenilaiansByDate($type, $value, $request)
+    {
+        $penilaians = DB::table('penilaians')
+            ->leftJoin('alternatifs as tabel_alternatif', 'penilaians.id_alternatif', '=', 'tabel_alternatif.id')
+            ->leftJoin('jenis_variabels as tabel_variabel', 'penilaians.id_jenisVariabel', '=', 'tabel_variabel.id')
+            ->select("penilaians.*", 'tabel_alternatif.nama as nama_alternatif', 'tabel_alternatif.alamat as alamat', 'tabel_variabel.nama as nama_variabel');
+        // dd($penilaians->get());
 
-    // Filter penilaians to include only those with status equal to 1
-    $filteredPenilaians = $penilaians->filter(function ($penilaian) {
-        $perhitungan = $this->perhitungan($penilaian);
-        return $perhitungan['finalResult'] == 1;
-    });
+        // Apply filter based on the selected date (month or year)
+        if ($type === 'month') {
+            $penilaians->whereMonth('penilaians.created_at', date('m', strtotime($value))); // Extract month from the date
+            $penilaians->whereYear('penilaians.created_at', date('Y', strtotime($value))); // Extract year from the date
+        } elseif ($type === 'year') {
+            $penilaians->whereYear('penilaians.created_at', $value);
+        }
 
-    // Initialize status array
-    $status = $filteredPenilaians->pluck('status')->toArray();
+        $penilaians = $penilaians->get();
 
-    return $filteredPenilaians;
-}
+        // Filter penilaians to include only those with status equal to 1
+        $filteredPenilaians = $penilaians->filter(function ($penilaian) {
+            $perhitungan = $this->perhitungan($penilaian);
+            return $perhitungan['finalResult'] == 1;
+        });
+
+        // Initialize status array
+        $status = $filteredPenilaians->pluck('status')->toArray();
+
+        return $filteredPenilaians;
+    }
 
 
     public function perhitungan($penilaian)
